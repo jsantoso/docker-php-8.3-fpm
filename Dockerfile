@@ -39,10 +39,12 @@ RUN apt-get install -y \
         lftp \
         poppler-utils \
         zip \
+        p7zip-full \
         pdftk \
         expect \
         mkisofs \
         dcmtk \
+        wget \
         libmagickwand-dev \
         unixodbc \
         unixodbc-dev
@@ -90,8 +92,16 @@ RUN pecl install xdebug
 RUN pecl install memcached
 RUN echo extension=memcached.so >> /usr/local/etc/php/conf.d/memcached.ini
 
-RUN pecl install imagick
-RUN docker-php-ext-enable imagick
+ARG IMAGICK_VERSION=3.7.0
+
+RUN curl -L -o /tmp/imagick.tar.gz https://github.com/Imagick/imagick/archive/refs/tags/${IMAGICK_VERSION}.tar.gz \
+    && tar --strip-components=1 -xf /tmp/imagick.tar.gz \
+    && phpize \
+    && ./configure \
+    && make \
+    && make install \
+    && echo "extension=imagick.so" > /usr/local/etc/php/conf.d/ext-imagick.ini \
+    && rm -rf /tmp/*
 
 ADD conf.d/php.ini /etc/php/8.3/php.ini
 ADD conf.d/xdebug.ini /etc/php/8.3/xdebug.ini
